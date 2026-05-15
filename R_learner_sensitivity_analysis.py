@@ -101,28 +101,7 @@ def sensitivity_analysis_wrapper(n_t, ss_ratio, uy_r2_grid, ud_r2_grid, p,
 	        W = np.concatenate([np.zeros(n1, dtype=int), np.ones(n2, dtype=int)])
 	        sim_s = _sim_seed(i, j, k)
 	        cf_obs = (int(sim_s) * 1103515245 + 12345) % (2**32)
-	        risk, _bias_arm, _, _, _ = _r_risk_on_W(
-	            X,
-	            Y,
-	            W,
-	            cf_seed=cf_obs,
-	            tau_seed=sim_s + 17,
-	            n_splits=N_SPLITS,
-	            nuisance=NUISANCE,
-	            clip_wtilde=1e-3,
-	            rf_n_estimators=RF_TREES,
-	        )
-	        pval, perm_bias_mean, perm_bias_std, bias_orig = _r_risk_perm_w_pvalue(
-	            X,
-	            Y,
-	            W,
-	            n_resamples=N_RES,
-	            sim_seed=sim_s,
-	            n_splits=N_SPLITS,
-	            nuisance=NUISANCE,
-	            rf_n_estimators=RF_TREES,
-	        )
-	        p_val_list1[k] = float(pval)
+	        p_val_list1[k] = rrperm(X, Y, W, n_perm = 150)
 	        risk_list[k] = float(risk)
 	    power_df['power'][i] = np.mean(np.array(p_val_list1) < 0.05)
 	    power_df.to_csv(out_csv)
