@@ -9,6 +9,12 @@ Implementation for the Permutation Test for Distribution Shift with Application 
 - CFPerm_grf:       Causal Forest Split Variable Importance
 ~ DRPerm:           Permutation Test via the doubly robust pseudo-outcome learner
 ~ RRPerm:           Permutation Test via the R-learner
+--------
+Benchmark Methods:
+(1) SKK
+(2) Conformal
+(3) C2ST
+(4) S
 
 ## Python version:
 ```python
