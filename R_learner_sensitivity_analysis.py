@@ -6,8 +6,8 @@ from itertools import product
 Sensitivity Analysis for the unobserved confounder that 
 associate with the responses Y as well as the treatment vector T.
 Sensitivity Parameters:
-[1] 
-[2] 
+[1] \rho1: the proportion of the variance explained by U in the treatment T
+[2] \rho2: the proportion of the variance explained by U in the response Y.
 Y = X * beta + epsilon
 k = r
 '''
