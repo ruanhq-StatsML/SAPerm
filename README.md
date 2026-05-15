@@ -1,6 +1,6 @@
-# CFPerm
+# Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis
 
-Implementation for the Permutation Test for Distribution Shift \& Fairness Violation with Application to Sentiment Analysis
+Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk Causal Inference Test.
 
 
 ## Python version:
