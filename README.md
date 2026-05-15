@@ -1,15 +1,15 @@
 # Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis
 
-Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk Causal Inference Test. We benchmark the following 15 methods with the 6 developed methods: \
-- RFPerm: Random Forest Permutation Test for Distribution Shift \ 
-- XGBPerm: XGBoost based Permutation Test for Distribution Shift \
-~  Causal Inference Based Test followed by a Permute-then-Refit Procedure on the Variable Importance \
-- CFPerm_loco:      Leave-one-Covariate-out Variable Importance \
-- CFPerm_PermuCATE: Conditional Permutation Variable Importance \
-- CFPerm_grf:       Causal Forest Split Variable Importance \
-~ DRPerm:           Permutation Test via the doubly robust pseudo-outcome learner \
-~ RRPerm:           Permutation Test via the R-learner \
--------- \
+Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk Causal Inference Test. We benchmark the following 15 methods with the 6 developed methods: 
+- RFPerm: Random Forest Permutation Test for Distribution Shift 
+- XGBPerm: XGBoost based Permutation Test for Distribution Shift 
+~  Causal Inference Based Test followed by a Permute-then-Refit Procedure on the Variable Importance 
+- CFPerm_loco:      Leave-one-Covariate-out Variable Importance 
+- CFPerm_PermuCATE: Conditional Permutation Variable Importance 
+- CFPerm_grf:       Causal Forest Split Variable Importance 
+~ DRPerm:           Permutation Test via the doubly robust pseudo-outcome learner 
+~ RRPerm:           Permutation Test via the R-learner 
+-------- 
 Benchmark Methods: \
 (1) SKK: "A two sample test in high dimensional data", Srivastava et.al. 2013 \
 (2) Conformal: "A two-sample conditional distribution test using conformal prediction and weighted rank sum", Hu et.al. 2024 \
