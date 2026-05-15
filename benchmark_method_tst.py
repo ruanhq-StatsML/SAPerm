@@ -1,4 +1,4 @@
-#Changing all the R implementations into Python:
+#
 
 import numpy as np
 import pandas as pd
@@ -7,13 +7,15 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics.pairwise import rbf_kernel, linear_kernel, chi2_kernel
 from sklearn.model_selection import train_test_split
 from scipy.spatial.distance import cdist
+from sklearn.model_selection import KFold, cross_val_score
+from sklearn.linear_model import LogisticRegression
 from scipy.stats import rankdata
 PI = 3.1415926
 
 
 
 #Permutation P-value for the Classifier Two-Sample Test
-def c2st(X, y, test_size = 0.2, B=100):
+def c2st(X, y, test_size = 0.2, B=150):
     X = np.asarray(X, dtype=float)
     y = np.asarray(y).reshape(-1)
     p = X.shape[1]
@@ -40,18 +42,18 @@ def c2st(X, y, test_size = 0.2, B=100):
             exceed += 1
     return float((exceed + 1.0) / (float(B) + 1.0))
 
-df1 = np.random.random((200, 20))
-df2 = np.random.random((500, 20))
-X = np.vstack((df1, df2))
-y = np.concatenate([np.zeros(df1.shape[0]), np.ones(df2.shape[0])])
-c2st(X, y)
+#df1 = np.random.random((200, 20))
+#df2 = np.random.random((500, 20))
+#X = np.vstack((df1, df2))
+#y = np.concatenate([np.zeros(df1.shape[0]), np.ones(df2.shape[0])])
+#c2st(X, y)
 
 #Kernel MMD test:
 def kernel_MMD(X, Y, kernel = 'rbf', n_iter = 100, gamma = 1.0):
     n1, p = X.shape
     n2 = Y.shape[0]
     def compute_MMD(X, Y, kernel):
-    	if kernel == 'rbf':
+        if kernel == 'rbf':
             AA = rbf_kernel(X, X, gamma = gamma)
             BB = rbf_kernel(Y, Y, gamma = gamma)
             AB = rbf_kernel(X, Y, gamma = gamma)
@@ -61,21 +63,21 @@ def kernel_MMD(X, Y, kernel = 'rbf', n_iter = 100, gamma = 1.0):
             AB = linear_kernel(X, Y, gamma = gamma)
         np.fill_diagonal(AA, 0)
         np.fill_diagonal(BB, 0)
-    	return np.sum(AA)/(n1 * (n1 - 1)) + np.sum(BB)/(n2 * (n2 - 1)) - 2 * np.sum(AB)
+        return np.sum(AA)/(n1 * (n1 - 1)) + np.sum(BB)/(n2 * (n2 - 1)) - 2 * np.sum(AB)
     observed_mmd = compute_MMD(X, Y, kernel = kernel)
     perm_mmd_seq = np.zeros(n_iter).reshape(-1)
     concat = np.vstack([X, Y])
     for i in range(n_iter):
         perm = np.random.permutation(n1 + n2)
-        X_perm = X[perm[:n1], :]
-        Y_perm = Y[perm[n1:], :]
+        X_perm = concat[perm[:n1], :]
+        Y_perm = concat[perm[n1:], :]
         perm_mmd_seq[i] = compute_MMD(X_perm, Y_perm, kernel = kernel)
     p_value = (1 + np.sum(perm_mmd_seq > observed_mmd))/(1 + n_iter)
     return p_value
 
-df1 = np.random.random((200, 20))
-df2 = np.random.random((500, 20))
-kernel_MMD(df1, df2)
+#df1 = np.random.random((500, 20))
+#df2 = np.random.random((200, 20))
+#kernel_MMD(df1, df2, n_iter = 100)
 
 
 
@@ -94,16 +96,19 @@ def random_projection_test(X1, X2, k = None):
     S2 = np.cov(X2_proj, rowvar = False)
     S_pooled = ((n1 - 1) * S1 + (n2 - 1) * S2)/(n1 + n2 - 2)
     diff = mu1 - mu2
-    T_square = (diff.T @ np.linalg.solve(S_pooled) @ diff) * (n1 * n2)/(n1 + n2)
+    T_square = (diff.T @ np.linalg.inv(S_pooled) @ diff) * (n1 * n2)/(n1 + n2)
     f_stat = T_square * (n - k + 1)/(n * k)
     p_value = 1 - f.cdf(f_stat, k, n - k + 1)
     return T_square, p_value
 
+#df1 = np.random.random((500, 20))
+#df2 = np.random.random((200, 20))
+#_, p_val = random_projection_test(df1, df2)
 
 
 
 
-def adaptive_test_high_dim(X1, X2, gammas=None, n_perm=1000):
+def adaptive_test_high_dim(X1, X2, gammas=None, n_perm=150):
     if gammas is None:
         gammas = [1, 2, 4, 8, np.inf]
     n1, p = X1.shape
@@ -132,6 +137,12 @@ def adaptive_test_high_dim(X1, X2, gammas=None, n_perm=1000):
     adaptive_p = np.mean(min_p_null <= np.min(p_vals))
     return adaptive_p, dict(zip(gammas, p_vals))
 
+#np.random.seed(2026)
+#df1 = np.random.random((500, 20))
+#df2 = np.random.random((200, 20))
+#p_val, zip_p = adaptive_test_high_dim(df1, df2)#just use the first p_val
+
+
 
 '''
 Chen, Qin 2010
@@ -156,6 +167,13 @@ def chen_qin(X, Y):
     z_score = stat / np.sqrt(max(var_stat, 1e-10))
     p_value = 1 - norm.cdf(z_score)
     return p_value
+
+#np.random.seed(2026)
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 500)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 200)
+#chen_qin(df1, df2)
+
+
 
 
 '''
@@ -197,10 +215,12 @@ def max_threshold_diffcov(X, Y, sig_mat1, sig_mat2, clip_val = 1e-5):
     return max_threshold
 
 def stat_chen14(X, Y):
-    cov_X = np.cov(X.T)
-    cov_Y = np.cov(Y.T)
+    cov_X = np.cov(X, rowvar = False)
+    cov_Y = np.cov(Y, rowvar = False)
     test_stat = max_threshold_diffcov(X, Y, cov_X, cov_Y)
     return test_stat
+
+
 
 def best_band(X, bandwidth, cv_fold):
     n, p = X.shape
@@ -209,21 +229,17 @@ def best_band(X, bandwidth, cv_fold):
     diff_norm = np.zeros((cv_fold, n_bandwidth))
     kf = KFold(n_splits = cv_fold, shuffle = True)
     for i, (train_idx, test_idx) in enumerate(kf.split(X)):
-        if i == cv_fold:
-        	temp_idx = X[((i-1)*fold_size+1):n,:]
-        else:
-        	temp_idx = X[((i-1)*fold_size+1):(i*fold_size),:]
-        X_train = X[-temp_idx, :]
-        X_test = X[temp_idx, :]
+        X_train = X[-test_idx, :]
+        X_test = X[test_idx, :]
         for j in range(n_bandwidth):
             train_cov = np.cov(X_train, rowvar = False)
             test_cov = np.cov(X_test, rowvar = False)
             for j, bw in enumerate(bandwidth):
                 #similar for toeplitz correlation structure.
-                train_cov_band = np.tril(np.triu(cov_t, k = -bw), k = bw)
+                train_cov_band = np.tril(np.triu(train_cov, k = -bw), k = bw)
                 diff_norm[i, j] = np.linalg.norm(test_cov - train_cov_band, ord = 'fro')
-        diff_norm = diff_norm.mean(dim = 0)
-        best = bandwidth[np.argmin(diff_norm)]
+    diff_norm = diff_norm.mean(axis = 0)
+    best = bandwidth[np.argmin(diff_norm)]
     return best
 
 """
@@ -235,9 +251,14 @@ def chen_li14(X, Y, n_perm, clip_val = 1e-3):
     X_cov = np.cov(X, rowvar = False)
     Y_cov = np.cov(Y, rowvar = False)
     p = X.shape[1]
-    bandwidth1 = np.linspace(0, p, 51)
-    bandwidth2 = np.linspace(0, p, 51)
+    if p % 2 == 1:
+        bandwidth1 = np.linspace(0, p-1, (p//2+1))
+        bandwidth2 = np.linspace(0, p-1, (p//2+1))
+    else:
+        bandwidth1 = np.linspace(0, p, (p//2+1))
+        bandwidth2 = np.linspace(0, p, (p//2+1))
     optim_band1 = best_band(X, bandwidth1, cv_fold = 5)
+    #Build the banded toeplitz matrix:
     X_cov_trunc = np.tril(np.triu(X_cov, k = -optim_band1), k = optim_band1)
     optim_band2 = best_band(Y, bandwidth2, cv_fold = 5)    
     Y_cov_trunc = np.tril(np.triu(Y_cov, k = -optim_band2), k = optim_band2)
@@ -251,12 +272,18 @@ def chen_li14(X, Y, n_perm, clip_val = 1e-3):
     T_CLZ_0 = stat_chen14(X, Y)
     T_CLZ_resam = np.zeros(n_perm)
     for b in range(n_perm):
-        X_B = multivariate_nomral.rvs(mean = np.zeros(p), cov = X_cov_est, size = n1)
-        Y_B = multivariate_nomral.rvs(mean = np.zeros(p), cov = Y_cov_est, size = n2)
+        X_B = multivariate_normal.rvs(mean = np.zeros(p), cov = X_cov_est, size = n1)
+        Y_B = multivariate_normal.rvs(mean = np.zeros(p), cov = Y_cov_est, size = n2)
         T_CLZ_resam[b] = stat_chen14(X_B, Y_B)
     p_CLZ = (np.sum(T_CLZ_resam > T_CLZ_0) + 1)/(n_perm + 1)
     return p_CLZ, optim_band1, optim_band2
 
+
+#df1 = multivariate_normal.rvs(mean = np.zeros(25), cov = np.random.random((25,25))+ np.diag(np.ones(25))*25, size= 500)
+#df2 = multivariate_normal.rvs(mean = np.zeros(25), cov = np.random.random((25,25))+ np.diag(np.ones(25))*25, size= 500)
+#sig_mat1 = np.cov(df1, rowvar = False)
+#sig_mat2 = np.cov(df2, rowvar = False)
+#chen_li14(df1, df2, n_perm = 100)
 
 
 def max_threshold_diffcov(X, Y, sig_mat1, sig_mat2, clip_val = 1e-5):
@@ -269,27 +296,28 @@ def max_threshold_diffcov(X, Y, sig_mat1, sig_mat2, clip_val = 1e-5):
     diag1 = np.maximum(diag1, clip_val)
     diag2 = np.diag(sig_mat2)
     diag2 = np.maximum(diag2, clip_val)
-    T_orig = (np.mean(X, dim = 0) - np.mean(Y, dim = 0)) ** 2/(diag1/n1 + diag2/n2)
-    s_level = T_orig[((T_orig >= 0.01) & (T_orig <= 2 * (1 - eta) * np.log(p)))]
-    s_m = s_level[:, np.newaxis]
-    t_val = T_orig[np.newaxis, :]
-    t_m = np.where(t_vals >= s_m, t_val - 1, 0)
-    #dnorm -> cdf and pnorm -> pdf
-    sqrt_s = np.sqrt(s_level)
-    pdf_s = norm.pdf(sqrt_s)
-    cdf_s = norm.cdf(sqrt_s)
-    mean_thr = 2 * np.sqrt(s_level) * pdf_s * p
-    thr = T_m.sum(dim = 1)
-    mean_thr = 2 * sqrt_s * pdf_s * p
-    #calculate the s.d. of the threshold:
-    term1 = 2 * (sqrt_s ** 3 + sqrt_s) * pdf_s + 4 * (1 - cdf_s)
-    sd_thr = np.sqrt(p * term1 - mean_thr ** 2/p)
-    max_threshold = np.max((thr - mean_thr)/(sd_thr + clip_val))
-    max_threshold = max_threshold * a_f - b_f
+    T_orig = (X.mean(axis = 0) - Y.mean(axis = 0)) ** 2/(diag1/n1 + diag2/n2)
+    s_level = T_orig[(T_orig >= 0.01) & (T_orig <= 2 * (1 - eta) * np.log(p))]
+    T_m = (T_orig - 1) * (T_orig >= s_level[:, None])
+    thr = np.sum(T_m, axis = 1)
+    cdf_s = norm.cdf(np.sqrt(s_level))
+    pdf_s = norm.pdf(np.sqrt(s_level))
+    mean_thr = 2 * np.sqrt(s_level) * norm.pdf(np.sqrt(s_level)) * p
+    term1 = 2 * ((np.sqrt(s_level)) ** 3 + np.sqrt(s_level)) * norm.pdf(np.sqrt(s_level))
+    term2 = 4 - 4 * norm.cdf(np.sqrt(s_level))
+    sd_thr = np.sqrt(p * (term1 + term2) - (mean_thr ** 2/p))
+    max_threshold = np.max((thr - mean_thr)/(sd_thr + clip_val)) * a_f - b_f
     return max_threshold
 
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#sig_mat1 = np.cov(df1, rowvar = False)
+#sig_mat2 = np.cov(df2, rowvar = False)
+#max_threshold_diffcov(X = df1, Y = df2, sig_mat1 = sig_mat1, sig_mat2 = sig_mat2)
+
+
 #function for extracting the maximum threshold(same covariance)
-def max_threshold_samecov(X, Y, sig_mat):
+def max_threshold_samecov(X, Y, sig_mat, clip_val = 5e-3):
     n1, p = X.shape
     n2 = Y.shape[0]
     a_f = np.sqrt(2 * np.log(np.log(p)))
@@ -297,19 +325,24 @@ def max_threshold_samecov(X, Y, sig_mat):
     eta = 0.05
     diag_sig = np.diag(sig_mat)
     diag_sig = np.maximum(diag_sig, clip_val)
-    T_orig = (np.mean(X, dim = 0) - np.mean(Y, dim = 0)) ** 2/((1/n1 + 1/n2) * diag_sig)
+    T_orig = (X.mean(axis = 0) - Y.mean(axis = 0)) ** 2/((1/n1 + 1/n2) * diag_sig)
     s_level = T_orig[(T_orig >= 0.01) & (T_orig <= 2 * (1 - eta) * np.log(p))]
-    s_m = s_level[:, np.newaxis]
-    t_vals = T_orig[np.newaxis, :]
-    t_m = np.where(t_vals >= s_m, t_val)
-    thr = np.sum(t_m, axis = 1)
-    term1 = 2 * (sqrt_s ** 3 + sqrt_s) * pdf_s + 4 * (1 - cdf_s)
-    sd_thr = np.sqrt(p * term1 - mean_thr ** 2/p)
-    max_threshold = np.max((thr - mean_thr)/(sd_thr + clip_val))
-    max_threshold = max_threshold * a_f - b_f
+    T_m = (T_orig - 1) * (T_orig >= s_level[:, None])
+    thr = np.sum(T_m, axis = 1)
+    cdf_s = norm.cdf(np.sqrt(s_level))
+    pdf_s = norm.pdf(np.sqrt(s_level))
+    mean_thr = 2 * np.sqrt(s_level) * norm.pdf(np.sqrt(s_level)) * p
+    term1 = 2 * ((np.sqrt(s_level)) ** 3 + np.sqrt(s_level)) * norm.pdf(np.sqrt(s_level))
+    term2 = 4 - 4 * norm.cdf(np.sqrt(s_level))
+    sd_thr = np.sqrt(p * (term1 + term2) - (mean_thr ** 2/p))
+    max_threshold = np.max((thr - mean_thr)/(sd_thr + clip_val)) * a_f - b_f
     return max_threshold
 
-
+#max_threshold_samecov(X = df1, Y = df2, sig_mat = sig_mat)
+#sig_mat = np.random.random((10,10))+ np.diag(np.ones(10))*10
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = sig_mat, size= 100)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = sig_mat, size= 100)
+#p_value, _, _ = chen_li14(df1, df2, n_perm = 100)
 
 
 
@@ -331,15 +364,18 @@ def skk_test(X, Y):
     R = D_inv.T @ S_pooled @ D_inv
     R_R = np.diag(R.T @ R)
     C_p_n = 1 + np.sum(R_R/(p**(3/2)))
-    var_qn = 2 * np.sum(R_R)/p - 2 * np.sum(np.diag(
-        np.linalg.inv(D) @ S1
-        ))**2/p/n1/(n1+1)**2 - 2 * np.sum(np.diag(
-        np.linalg.inv(D) @ S2
-        ))**2/p/n2/(n2+1)**2
+    var_qn = 2 * np.sum(R_R)/p - 2 * np.sum(np.diag(np.linalg.inv(D) @ S1))**2/p/n1/(n1+1)**2 - 2 * np.sum(np.diag(np.linalg.inv(D) @ S2))**2/p/n2/(n2+1)**2
     denom = np.sqrt(p * C_p_n * var_qn)
-    TS_value = ((X_bar - Y_bar).T %*% D_inv %*% (X_bar - Y_bar) - p)/denom
+    TS_value = ((X_bar - Y_bar).T @ D_inv @ (X_bar - Y_bar) - p)/denom
     p_value = 2 * (1 - norm.cdf(np.abs(TS_value)))
     return TS_value, p_value
+
+
+#df1 = np.random.random((500, 20))
+#df2 = np.random.random((200, 20))
+#_, p_value = skk_test(df1, df2)
+
+
 
 
 def sri08_test(X, Y, n_iter = 100, seed = 2026, clip_val = 1e-5):
@@ -348,7 +384,7 @@ def sri08_test(X, Y, n_iter = 100, seed = 2026, clip_val = 1e-5):
     tau = (n1 + n2)/(n1 * n2)
     n = n1 + n2 - 2
     Sn = ((n1 - 1) * np.cov(X, rowvar = False) + (n2 - 1) * np.cov(Y, rowvar = False))/(n1 + n2 - 2)
-    diag_s = np.diag(Sn)
+    diag_s = np.diag(np.diag(Sn))
     diag_s[diag_s < clip_val] = clip_val
     concatenate_df = np.vstack([X, Y])
     diff = np.mean(X, axis = 0) - np.mean(Y, axis = 0)
@@ -361,7 +397,7 @@ def sri08_test(X, Y, n_iter = 100, seed = 2026, clip_val = 1e-5):
         Y_perm = concatenate_df[perm[n1:], :]
         Sn_perm = ((n1 - 1) * np.cov(X_perm, rowvar = False) +
                    (n2 - 1) * np.cov(Y_perm, rowvar = False))/(n1 + n2 - 2)
-        diag_sn_perm = np.diag(Sn_perm)
+        diag_sn_perm = np.diag(np.diag(Sn_perm))
         diag_sn_perm[diag_sn_perm < clip_val] = clip_val
         diff_perm = np.mean(X_perm, axis = 0) - np.mean(Y_perm, axis = 0)
         XdX_mean = np.sum(diff_perm**2/diag_sn_perm)
@@ -369,6 +405,10 @@ def sri08_test(X, Y, n_iter = 100, seed = 2026, clip_val = 1e-5):
     #record the permutation p-value:
     p_value = (np.sum(sristat_perm >= sristat) + 1)/(n_iter + 1)
     return p_value
+
+#df1 = np.random.random((500, 20))
+#df2 = np.random.random((200, 20))
+#p_value = sri08_test(df1, df2, n_iter = 50)
 
 
 def bai96_test(X, Y, n_iter = 100, seed = 2026):
@@ -393,28 +433,12 @@ def bai96_test(X, Y, n_iter = 100, seed = 2026):
 
 
 #Testing:
-df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*2.5,size= 100)
-df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*2.5,size= 100)
-
-
-
-
-
-#Implement the zwl test here:
-#XY -> (n+m)?
-def compute_center(XY, n, m, ntoorderminus = 2):
-    x = XY[1:n]
-    y = XY[(n+1):(n+m)]
-    mean_X = np.mean(x)
-    mean_Y = np.mean(y)
-    x_minus = x - mean_X
-    y_minus = y - mean_Y
-    sig_sq_x_hat = np.sum(x**2)/n - mean_X**2
-    sig_sq_y_hat = np.sum(y**2)/m - mean_Y**2
-    tau_sq_hat = sig_sq_x_hat + (n/m) * sig_sq_y_hat
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#p_value = bai96_test(df1, df2, n_iter = 100)
 
 def cov_hat(X, Y):
-    n, p = X.shape[0]
+    n, p = X.shape
     m = Y.shape[0]
     lambda1 = n/(n+m)
     lambda2 = m/(n+m)
@@ -427,8 +451,9 @@ def cov_hat(X, Y):
     indices = np.arange(1, p + 1)
     h = int(np.ceil(p ** 3/8))
     mask = np.abs(indices[:, None] - indices[None, :]) <= h
-    result = (numerator/demon) * np.abs(indices[:, None] - indices[None, :]) <= np.ceil(p ** 3/8)
+    result = (numerator/denom) * np.abs(indices[:, None] - indices[None, :]) <= np.ceil(p ** 3/8)
     return result
+
 
 def compute_center(xy, n, m, ntoorderminus=2):
     xy = np.asarray(xy)
@@ -482,8 +507,6 @@ def compute_center(xy, n, m, ntoorderminus=2):
         return float(c)
 
 
-#'
-#'
 def zwl_test(X, Y, order):
     n1, p = X.shape
     m = Y.shape[0]
@@ -502,7 +525,7 @@ def zwl_test(X, Y, order):
     center_vec = np.apply_along_axis(
         compute_center, 0, 
         comb, n = n, m = m, ntoorderminus = order
-    	)
+        )
     center_est = np.mean(center_vec)
     test_stat = (Tn - center_est)/np.sqrt(var_hat)
     pvalue = 2 * (1 - norm.cdf(np.abs(t_stat)))
@@ -515,6 +538,7 @@ Pan14 test:
 A powerful and adaptive association test for rare variants
 '''
 
+
 def stat_SPU(X, Y, power_list, clip_val = 1e-3):
     n1, p = X.shape
     n2 = Y.shape[0]
@@ -523,29 +547,30 @@ def stat_SPU(X, Y, power_list, clip_val = 1e-3):
     diff = np.mean(X, axis = 0) - np.mean(Y, axis = 0)
     Ts = np.zeros(len(power_list))
     for j in range(len(power_list)):
-        if power_list < np.inf:
-            Ts[j] = np.sum(diff**power_list[j])
-        else:
+        if power_list[j] == np.inf:
             diag1 = np.diag(cov_X)
             diag1 = np.maximum(diag1, clip_val)
             diag2 = np.diag(cov_Y)
             diag2 = np.maximum(diag2, clip_val)
             Ts[j] = max(diff**2/(diag1/n1 + diag2/n2))
+        else:
+            Ts[j] = np.sum(diff**power_list[j])
     return Ts
 
-
-
-def pan14(X, Y, n_perm = 100, power_list = [np.arange(1,7),np.inf]):
+def pan14(X, Y, n_perm = 100, power_list = [1,2,3,4,5,6,np.inf]):
     n1, p = X.shape 
     n2 = Y.shape[0]
     T_SPU_0 = stat_SPU(X, Y, power_list)
     T_SPU_resam = np.zeros((n_perm, len(power_list)))
+    cov_est_X = np.cov(X, rowvar = False)
+    cov_est_Y = np.cov(Y, rowvar = False)
     for b in range(n_perm):
-        X_b = multivariate_nomral.rvs(mean = np.zeros(p), cov = cov_est_X, size = n1)
-        Y_b = multivariate_nomral.rvs(mean = np.zeros(p), cov = cov_est_Y, size = n2)
+        X_b = multivariate_normal.rvs(mean = np.zeros(p), cov = cov_est_X, size = n1)
+        Y_b = multivariate_normal.rvs(mean = np.zeros(p), cov = cov_est_Y, size = n2)
         T_SPU_resam[b, :] = stat_SPU(X, Y, power_list)
     p_spu = np.zeros(len(power_list))#permutation p-value
-    for i in range(len(pow)):
+    T_aspu_resam = 
+    for i in range(len(power_list)):
         p_spu[i] = ((np.sum(T_SPU_resam[:, i]) > abs(T_SPU_0[i]))+1)/(n_perm + 1)
         p_spu_resam = (n_perm + 1 - rankdata(np.abs(T_SPU_resam[:, i])))/n_perm
         if i == 1:
@@ -555,6 +580,13 @@ def pan14(X, Y, n_perm = 100, power_list = [np.arange(1,7),np.inf]):
     T_aSPU_0 = min(p_spu)
     p_aspu = (np.sum(T_aspu_resam < T_aSPU_0) + 1)/(n_perm + 1)#asymptotic p-value
     return p_spu, p_aspu
+
+#Testing:
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size= 100)
+#p_spu, p_aspu = pan14(df1, df2, n_perm = 100)
+
+
 
 '''
 #' Srivastava, M. S., Katayama, S., and Kano, Y. (2013).
@@ -574,16 +606,16 @@ def skk_test(X, Y):
     D_inv = np.linalg.inv(np.sqrt(D))
     R = D_inv @ (S1/n1 + S2/n2) @ D_inv
     c_p_n = 1 + np.sum(np.diag(R.T@R))/(p**(3/2))
-    var_qn = 2 * np.sum(np.diag(R.T@R))/p - 2 * (np.sum(np.diag(D_inv @ S1)) ** 2) /p/n1/(n1+1)**2 - 
-             2 * np.sum(np.diag(D_inv @ S2)) ** 2 /p/n2/((n2+1)**2)
+    var_qn = 2 * np.sum(np.diag(R.T@R))/p - 2 * (np.sum(np.diag(D_inv @ S1)) ** 2) /p/n1/(n1+1)**2 - 2 * np.sum(np.diag(D_inv @ S2)) ** 2 /p/n2/((n2+1)**2)
     denom = np.sqrt(p * c_p_n * var_qn)
     TS_value = ((X_bar - Y_bar).T @ D_inv @ (X_bar - Y_bar) - p)/denom
-    pvalue = 2 * (1 - norm.(np.abs(TS_value)))
+    pvalue = 2 * (1 - norm.cdf(np.abs(TS_value)))
     Tn = (X_bar - Y_bar).T @ D_inv @ (X_bar - Y_bar)
     return TS_value, pvalue
 
-
-
+#df1 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size = 100)
+#df2 = multivariate_normal.rvs(mean = np.zeros(10), cov = np.random.random((10,10))+ np.diag(np.ones(10))*10, size = 100)
+#TS_value, p_value = skk_test(X, Y)
 
 
 

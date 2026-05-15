@@ -3,7 +3,13 @@ from itertools import product
 
 
 '''
-Sensitivity Analysis for the 
+Sensitivity Analysis for the unobserved confounder that 
+associate with the responses Y as well as the treatment vector T.
+Sensitivity Parameters:
+[1] 
+[2] 
+Y = X * beta + epsilon
+k = r
 '''
 
 def linear_model_sensitivity(
