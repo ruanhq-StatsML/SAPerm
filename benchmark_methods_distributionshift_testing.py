@@ -120,7 +120,7 @@ def benchmark_all_method(df1, df2, B, config = func_config):
         p_val_zwl[i] = zwl_test(df1_X_concat, df2_X_concat, order = 1)
         p_val_zwlm[i] = zwl_test(df1_X_concat, df2_X_concat, order = 2)
         p_val_c2st[i] = c2st(df1_X_concat, df2_X_concat)
-        p_val_rfperm[i] = RFPerm(df1_sample, df2_sample, loss = L2, B = 200)
+        p_val_rfperm[i] = RFPerm(df1_sample, df2_sample, loss = L2, B = n_perm_rf)
         p_val_xgbperm[i] = PermValTest(df1_sample, df2_sample, model_class = model_class, model_component = model_component_xgb)
         p_val_autotst[i] = autotst.AutoTST(df1_X_concat, df2_X_concat).p_value()
         p_val_conformal[i] = conformalNN(df1_sample, df2_sample)

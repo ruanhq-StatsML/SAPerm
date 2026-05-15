@@ -1,4 +1,9 @@
 #conformal testing benchmark:
+import numpy as np
+from scipy.stats import f, norm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.model_selection import train_test_split
 
 def centropy(p, y):
     p = np.clip(p, 1e-3, 1-1e-3)
@@ -24,6 +29,7 @@ def getFinalStat(g1, g2, v1, v2):
             'sigma1': sigma1, 'sigma2': sigma2,
             'sigma_gm': sigma_gm, 'sigma_hm': sigma_hm}
 
+
 def getEcdf2(v):
     v_sorted = np.sort(v)
     ecdf1 = np.searchsorted(v_sorted, v, side = 'right')/len(v)
@@ -32,7 +38,6 @@ def getEcdf2(v):
 
 def getEcdf1(v1, v2):
     v2_sorted = np.sort(v2)
-    point1 = np.searchsorted(v2_sorted, v1, side = 'right')/len(v2)
     point1 = np.searchsorted(v2_sorted, v1, side = 'right')/len(v2)
     ecdf2 = np.array([np.mean(v2 == x) for x in v1])
     return ecdf1, ecdf2
@@ -50,6 +55,25 @@ def sim_fun(x1, y1, x2, y2, n11, n12, n21, n22):
     index1 = np.random.choice(n1, size = n11, replace = False)
     index1_full = np.arange(n1)
     index1_comp = np.setdiff1d(index1_full, index1)
+    x11 = x1[index1,:]
+    x12 = x1[-index1,:]
+    y11 = y1[index1]
+    y12 = y1[-index1]
+    index2 = np.random.choice(n2, size = n21, replace = False)
+    index2_full = np.arange(n2)
+    index2_comp = np.setdiff1d(index2_full, index2)
+    g12_orac = np.ones(n12)
+    g22_orac = np.ones(n22)
+    v12_orac = np.ones(n12)
+    v22_orac = np.ones(n22)
+    temp = getFinalStat(g12_orac, g22_orac, v12_orac, v22_orac)
+    u_orac = temp['U']
+    var_orac1 = temp['sigma1']
+    oracpvalue1 = norm.pdf(temp['z1'])
+    var_orac2 = temp['sigma2']
+    oracpvalue2 = norm.pdf(temp['z2'])
+    oracpvalue_gm = norm.pdf(temp['z_gm'])
+
 
 def getAsyVar2(g2, v2, m1):
     m2 = len(g2)

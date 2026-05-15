@@ -13,8 +13,11 @@ from scipy.stats import rankdata
 PI = 3.1415926
 
 
-
-#Permutation P-value for the Classifier Two-Sample Test
+'''
+Permutation P-value for the Classifier Two-Sample Test:
+"Revisiting Classifier Two-Sample Tests"
+Lopez-Paz, Oquab 2016
+'''
 def c2st(X, y, test_size = 0.2, B=150):
     X = np.asarray(X, dtype=float)
     y = np.asarray(y).reshape(-1)
@@ -48,7 +51,13 @@ def c2st(X, y, test_size = 0.2, B=150):
 #y = np.concatenate([np.zeros(df1.shape[0]), np.ones(df2.shape[0])])
 #c2st(X, y)
 
-#Kernel MMD test:
+
+
+
+"""
+"A Kernel Two-sample Test"
+Gretton et.al. 2012
+"""
 def kernel_MMD(X, Y, kernel = 'rbf', n_iter = 100, gamma = 1.0):
     n1, p = X.shape
     n2 = Y.shape[0]
@@ -80,7 +89,10 @@ def kernel_MMD(X, Y, kernel = 'rbf', n_iter = 100, gamma = 1.0):
 #kernel_MMD(df1, df2, n_iter = 100)
 
 
-
+"""
+"A more powerful two-sample test in high dimensions using random projection"
+ME.Lopes et.al. 2011
+"""
 def random_projection_test(X1, X2, k = None):
     n1, p = X1.shape
     n2 = X2.shape[0]
@@ -106,7 +118,9 @@ def random_projection_test(X1, X2, k = None):
 #_, p_val = random_projection_test(df1, df2)
 
 
+"""
 
+"""
 
 def adaptive_test_high_dim(X1, X2, gammas=None, n_perm=150):
     if gammas is None:
