@@ -53,7 +53,7 @@ Pan14 (2014) – A powerful and adaptive association test for rare variants
 Pan, W. (2014).
 Genetic Epidemiology. [Originally for rare variant association, can be adapted for high‑dimensional two‑sample means.]
 
-AutoTST (??) – AutoML Two‑Sample Test
+AutoTST (2020) – AutoML Two‑Sample Test
 Kübler, J., et al. (2022).
 [An automated machine learning approach to two‑sample testing. Please check the original source for exact year and citation.]
 
