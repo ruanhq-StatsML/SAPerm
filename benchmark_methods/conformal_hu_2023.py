@@ -1,6 +1,6 @@
 #conformal testing benchmark:
 import numpy as np
-from scipy.stats import f, norm
+from scipy.stats import f, norm, chi2
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
@@ -41,15 +41,6 @@ def getUstat(g1, v1, v2):
     inner_sum = np.array([zeta * np.mean(x == v2) for x in v1])
     u1 = np.mean(g1 * ((1 - ecdf1) + inner_sum))
     return(u1/np.mean(g1))
-
-def NNfun(X, Z, xpre1, xpre2, nnrep = 10, hidden_layers = [8, 3],
-    acfun = 'sigmoid', optim = 'SGD', n_epoch = 200, learning_rate = 1e-3, l1 = 0):
-    n1 = xpre1.shape[0]
-    n2 = xpre2.shape[0]
-    prob1 = np.zeros((n1, nnrep))
-    prob2 = np.zeros((n2, nnrep))
-    for i in range(nnrep):
-        fit_nn = 
 
 
 def getEcdf2(v):
@@ -232,12 +223,14 @@ def getCor(g1, v1, v2, gorac1, vorac1, vorac2):
 def LR(x1, x2, y1, y2):
     n1, p = x1.shape
     n2 = x2.shape[0]
+    n = n1 + n2
     x = np.vstack((x1, x2))
     y = np.concatenate((y1, y2))
-    xmean = np.tile(x.mean(axis = 0), (n1, 1))
+    xmean = np.tile(x.mean(axis = 0), (n, 1))
     ymean = np.mean(y)
     b = np.linalg.solve((x-xmean).T@(x-xmean), (x-xmean).T@(y-ymean))
     a = ymean - np.sum(b*x.mean(axis = 0))
+    sigma2_res = np.mean((y - a - x@b)**2)
     xmean1 = np.tile(x1.mean(axis = 0), (n1, 1))
     xmean2 = np.tile(x2.mean(axis = 0), (n2, 1))
     ymean1 = np.mean(y1)
@@ -252,8 +245,48 @@ def LR(x1, x2, y1, y2):
     sigma2_unres = (np.sum((y1 - a1 - x1@b)**2) + 
         np.sum((y2 - a2 - x2@b)**2))/(n1 + n2)
     stat = n * np.log(sigma2_res/sigma2_unres)
-    pval = 1 - pchisq(stat, 1)
+    pval = 1 - chi2.pdf(stat, 1)
     return pval
+
+
+def sim_fun(x1, y1, x2, y2, n11, n12, n21, n22):
+    n1 = n11 + n12
+    n2 = n21 + n22
+    index = np.random.choice(np.arange(n1), n11, replace = False)
+    m_index = np.setdiff1d(np.arange(n1), index)
+    x11 = x1[index,:]
+    x12 = x1[m_index,:]
+    y11 = y1[index]
+    y12 = y1[m_index]
+    index2 = np.random.choice(np.arange(n2), n12, replace = False)
+    m_index = np.setdiff1d(np.arange(n2), inde2)
+    x21 = x2[index, :]
+    x22 = x2[m_index, :]
+    y21 = y2[index]
+    y22 = y2[m_index]
+    g12_orac = np.ones(n12)
+    g22_orac = np.ones(n22)
+    v12_orac = np.ones(n12)
+    v22_orac = np.ones(n22)
+    temp = getFinalStat(g12_orac, g22_orac, v12_orac, v22_orac)
+    u_orac = temp['U']
+    var_orac1 = temp['sigma1']
+    oracpvalue1 = norm.pdf(temp['z1'])
+    var_orac2 = temp['sigma2']
+    oracpvalue2 = norm.pdf(temp['z2'])
+    oracpvalue_gm = norm.pdf(temp['z_gm'])
+    oracpvalue_hm = norm.pdf(temp['z_hm'])
+    label_fit_Y = np.concatenate((np.zeros(n11), np.ones(n21)))
+    xy_fit = np.hstack((np.vstack(x11, x21), np.vstack(y11, y21)))
+    fit_joint = LogisticRegression().fit(xy_fit, label_fit_Y)
+    x_fit = np.vstack((x11, x21))
+    fit_margi = LogisticRegression().fit(x_fit, label_fit_Y)
+    prob_marginal = fit_margi.predict_proba(np.vstack((x12, x22)))[:, 1]
+    prob_marginal = np.maximum(np.minimum(prob_marginal, 0.99), 0.01)
+    g12_est_ll = prob_marginal[1:n12]/(1 - prob_marginal[1:n12])*n11/n21
+    g22_est_ll = prob_marginal[(n21+1):(n12+n22)]/(1-prob.matginal[(n12+1):(n12+n22)])*n11/n21
+    cerror12_ll_marginal = np.mean(prob_marginal[1:n12] > 0.5)
+    cerror22_ll_marginal = np.mean()
 
 
 
