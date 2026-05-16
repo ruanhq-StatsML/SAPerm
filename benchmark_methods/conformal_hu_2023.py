@@ -2,8 +2,11 @@
 import numpy as np
 from scipy.stats import f, norm
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics.pairwise import rbf_kernel
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, StratifiedKFold
 
 def centropy(p, y):
     p = np.clip(p, 1e-3, 1-1e-3)
@@ -28,6 +31,25 @@ def getFinalStat(g1, g2, v1, v2):
             'z_gm': z_gm, 'z_hm': z_hm,
             'sigma1': sigma1, 'sigma2': sigma2,
             'sigma_gm': sigma_gm, 'sigma_hm': sigma_hm}
+
+def getUstat(g1, v1, v2):
+    n1 = len(g1)
+    n2 = len(v2)
+    zeta = np.random.uniform(size = n2)
+    ecdfVal = getEcdf1(v1, v2)
+    ecdf1 = ecdfVal['ecdf1']
+    inner_sum = np.array([zeta * np.mean(x == v2) for x in v1])
+    u1 = np.mean(g1 * ((1 - ecdf1) + inner_sum))
+    return(u1/np.mean(g1))
+
+def NNfun(X, Z, xpre1, xpre2, nnrep = 10, hidden_layers = [8, 3],
+    acfun = 'sigmoid', optim = 'SGD', n_epoch = 200, learning_rate = 1e-3, l1 = 0):
+    n1 = xpre1.shape[0]
+    n2 = xpre2.shape[0]
+    prob1 = np.zeros((n1, nnrep))
+    prob2 = np.zeros((n2, nnrep))
+    for i in range(nnrep):
+        fit_nn = 
 
 
 def getEcdf2(v):
@@ -112,22 +134,82 @@ def getAsyVar1(g1, v1, v2):
 
 
 
-def NNfun(x, z, xpre1, xpre2, nnrep = 10):
+def NNfun(x, z, xpre1, xpre2, n_epochs = 20, nnrep = 10, optimizer = 'sgd', clip_val = 1e-3, seed = 2026):
     n1 = x.shape[0]
     n2 = z.shape[0]
     prob1 = np.zeros((n1, nnrep))
     prob2 = np.zeros((n2, nnrep))
     for i in range(nnrep):
-        fit_nn = MLPClassifier(
+        seed_i = seed + i
+        nn_model = MLPClassifier(
             hidden_layer_sizes = hidden_layers,
-            activation = '',
-            solver = ,
+            activation = 'relu',
+            solver = 'sgd',
             alpha = 0.0, 
-            learning_rate = 1e-5,
-
+            learning_rate_init = learn_rates,
+            max_iter = n_epochs,
+            random_state = seed,
+            verbose = False,
+            early_stopping = False
         	)
+        nn_model.fit(x, z)
+        prob1[:, i] = nn_model.preidct(xpre1)[:, 1]
+        prob2[:, i] = nn_model.predict(xpre2)[:, 1]
+    prob1_fit = np.mean(prob1, axis = 1)
+    prob2_fit = np.mean(prob2, axis = 1)
+    prob1_fit = np.clip(prob1_fit, clip_val, 1 - clip_val)
+    prob2_fit = np.clip(prob2_fit, clip_val, 1 - clip_val)
+    return {'prob1_fit': prob1_fit, 'prob2_fit': prob2_fit}
 
 
+def KLR_cv(X, Y, xpre, ypre, lambdaseq, sigmaseq):
+    lambda_len = len(lambdaseq)
+    sigma_len = len(sigmaseq)
+    centropy = np.zeros((lambda_len, sigma_len))
+    ypre = ypre.astype(int)
+    minerror = np.inf
+    for i, lambda_now in range(lambda_len):
+        for j, sigma in range(sigma_len):
+            cv_data = kFold(X, Y, shuffle = True)
+            pipe = Pipeline([
+                ('rbf': RBFSampler()),
+                ('lr': LogisticRegression())])
+            param_grid = {
+            'rbf__gamma': sigmaseq,
+            'lr__C': 1/np.array(lambdaseq)
+            }
+            fit_klr = 
+            prob_pre = 1/(1 + np.exp(-K))
+            prob_pre = np.minimum(np.maximum(prob_pre, 0.01), 0.99)
+            centropy[i, j] = np.mean(-ypre * np.log(prob_pre) -
+                (1 - ypre) * np.log(1 - prob_pre))
+            if centropy[i, j] < minerror:
+                minerror = centropy[i, j]
+                iind = i
+                jind = j 
+                prob = prob_pre
+    prob = np.minimum(np.maximum(prob, 0.01), 0.99)
+    lambdas = lambdaseq[iind]
+    sigma = sigmaseq[jind]
+    return {
+    'prob': prob,
+    'lambda': lambdas,
+    'sigma': sigma,
+    'centropy': centropy
+    }
+
+
+def getCor(g1, v1, v2, gorac1, vorac1, vorac2):
+    mean_hatg_minus_g = np.mean(g1 - gorac1)
+    mean_abs_hatg_minus_g = np.mean(np.abs(g1 - gorac1))
+    ecdfVal = getEcdf1(v1, v2)
+    ecdf1 = ecdfVal['ecdf1']
+    ecdf2 = ecdfVal['ecdf2']
+    mean_hatd = np.mean(1 -  ecdf1 + ecdf2/2)
+    var_hatg_minus_g = np.var(g1 - gorac1)
+    
+                
+             
 
 
 
