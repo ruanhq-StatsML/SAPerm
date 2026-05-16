@@ -79,8 +79,10 @@ class ExtractEmbedding(nn.Module):
         return int((9026 + i * 100003 + j * 10007)%(2**31 - 1))
 
 
-
-
+'''
+Pipeline for the wrapper of the 
+RF/GBDT based permutation test on the text embedding.
+'''
 
 
 

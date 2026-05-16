@@ -45,7 +45,7 @@ def getUstat(g1, v1, v2):
     zeta = np.random.uniform(size = n2)
     ecdfVal = getEcdf1(v1, v2)
     ecdf1 = ecdfVal['ecdf1']
-    inner_sum = np.array([zeta * np.mean(x == v2) for x in v1])
+    inner_sum = np.array([np.mean(zeta*(x == v2)) for x in v1])
     u1 = np.mean(g1 * ((1 - ecdf1) + inner_sum))
     return(u1/np.mean(g1))
 
@@ -245,7 +245,7 @@ def sim_fun(x1, y1, x2, y2, n11, n12, n21, n22, seed = 2026, nnrep = 5):
     x12 = x1[m_index,:]
     y11 = y1[index]
     y12 = y1[m_index]
-    index2 = np.random.choice(np.arange(n2), n12, replace = False)
+    index2 = np.random.choice(np.arange(n2), n21, replace = False)
     m_index = np.setdiff1d(np.arange(n2), index2)
     x21 = x2[index, :]
     x22 = x2[m_index, :]
@@ -258,11 +258,11 @@ def sim_fun(x1, y1, x2, y2, n11, n12, n21, n22, seed = 2026, nnrep = 5):
     temp = getFinalStat(g12_orac, g22_orac, v12_orac, v22_orac)
     u_orac = temp['U']
     var_orac1 = temp['sigma1']
-    oracpvalue1 = norm.pdf(temp['z1'])
+    oracpvalue1 = norm.cdf(temp['z1'])
     var_orac2 = temp['sigma2']
-    oracpvalue2 = norm.pdf(temp['z2'])
-    oracpvalue_gm = norm.pdf(temp['z_gm'])
-    oracpvalue_hm = norm.pdf(temp['z_hm'])
+    oracpvalue2 = norm.cdf(temp['z2'])
+    oracpvalue_gm = norm.cdf(temp['z_gm'])
+    oracpvalue_hm = norm.cdf(temp['z_hm'])
     label_fit_Y = np.concatenate([np.zeros(n11), np.ones(n21)])
     xy_fit = np.column_stack([np.vstack([x11, x21]), np.concatenate([y11, y21])])
     fit_joint = LogisticRegression(solver = 'lbfgs').fit(xy_fit, label_fit_Y)
@@ -456,7 +456,7 @@ def conformalNN(df1, df2, mc, alpha=0.05, nnrep = 5):
 
 #df1 = np.random.random((200, 21))
 #df2 = np.random.random((200, 21)) 
-#conformalNN(df1, df2, mc = 50) -> expected a very low power.
+#conformalNN(df1, df2, mc = 5) -> expected a very low power.
 
 
 

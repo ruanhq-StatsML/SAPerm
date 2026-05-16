@@ -9,7 +9,8 @@ from sklearn.preprocessing import StandardScaler
 os.chdir("/Users/heqiaoruan/Desktop/Desktop - heqiao’s MacBook Air/PhD/Research/permutationTestingCovariateShift")
 df1 = pd.read_csv("train_biasfinder_bert_embedding.csv").drop(['Unnamed: 0'], axis = 1)
 df2 = pd.read_csv("test_biasfinder_bert_embedding.csv").drop(['Unnamed: 0'], axis = 1)
-#running the RRPerm procedure after subsampling:
+#running the RRPerm procedure after subsampling 
+
 
 df1 = df1.sample(1000)
 df1_X = df1.iloc[:,:(df1.shape[1]-1)]
@@ -28,7 +29,7 @@ B = 50
 pval_list = [0] * B
 n1 = df_batch1.shape[0]
 n2 = df_batch2.shape[0]
-NUISANCE = 'linear'
+NUISANCE = 'rf'
 W = np.concatenate([np.zeros(n1, dtype = int),
                     np.ones(n2, dtype = int)])
 for i in range(B):
@@ -44,24 +45,7 @@ for i in range(B):
                         df2_sample[:, :(df2_sample.shape[1] - 1)]]).astype(float)
     Y = np.concatenate([df1_sample[:, df1_sample.shape[1] - 1],
                         df2_sample[:, df2_sample.shape[1] - 1]]).astype(float)
-    risk, _bias_arm, _, _, _, _ = _r_risk_on_W(
-            X, Y, W, cf_seed = 2026 + i,
-            tau_seed = 2024 + i,
-            n_splits = 5,
-            nuisance = NUISANCE,
-            clip_wtilde = 0.005,
-            rf_n_estimators = 50
-        )
-    pval, _, _, _, _, _, _, _ = _r_risk_perm_w_pvalue(
-            X,
-            Y,
-            W,
-            n_resamples=int(100),
-            sim_seed=2025,
-            n_splits=5,
-            nuisance=NUISANCE,
-            rf_n_estimators=50,
-        )
+    pval = rrperm
     pval_list[i] = pval
     print(pval)
 np.mean(np.asarray(pval_list) < 0.05)#biasfinder dataset:

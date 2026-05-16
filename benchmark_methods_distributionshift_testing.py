@@ -3,7 +3,9 @@ import numpy as np
 from scipy.stats import f, norm
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics.pairwise import rbf_kernel
-from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split, KFold, StratifiedKFold
 from benchmark_method_tst import (
     chen_qin, adaptive_test_high_dim,
     mmd_test, c2st,
@@ -18,9 +20,9 @@ from RRPerm import RRPerm
 from cfperm import *
 from RFPerm import * 
 from model_registry_class import *
+from conformal_benchmark import *
 '''
-Benchmark a variety of different methods for comparisons:
-
+Benchmark all the methods with th
 '''
 model_registry = default_model_registry(
   ntree = 150,
@@ -42,7 +44,8 @@ func_config = {
 'kernel': 'rbf',
 'n_perm_rrperm': 150,
 'outcome_model': 'rf_regressor',
-'ps_model': 'logistic_classifier'
+'ps_model': 'logistic_classifier',
+'n_conformal': 150
 }
 def benchmark_all_method(df1, df2, B, config = func_config):
     n1, p = df1.shape
@@ -65,6 +68,7 @@ def benchmark_all_method(df1, df2, B, config = func_config):
     kernel = config.get('kernel')
     n_perm_rrperm = config.get('n_perm_rrperm')
     ps_model = config.get('ps_model')
+    n_conformal = config.get('n_conformal')
     #Initiate the p-value lists, for the two sample testing procedure, run on the joint distribution as well as the covariate distributions
     p_val_rrperm = np.zeros(B)
     p_val_miles16 = np.zeros(B)
@@ -123,7 +127,7 @@ def benchmark_all_method(df1, df2, B, config = func_config):
         p_val_rfperm[i] = RFPerm(df1_sample, df2_sample, loss = L2, B = n_perm_rf)
         p_val_xgbperm[i] = PermValTest(df1_sample, df2_sample, model_class = model_class, model_component = model_component_xgb)
         p_val_autotst[i] = autotst.AutoTST(df1_X_concat, df2_X_concat).p_value()
-        p_val_conformal[i] = conformalNN(df1_sample, df2_sample)
+        p_val_conformal[i] = conformalNN(df1_sample, df2_sample, mc = n_conformal)
     #Reformulate them back to a DataFrame:
     out_df = pd.DataFrame({
         'xu16': float(np.mean(p_val_xu16 < alpha)),
@@ -151,7 +155,9 @@ def benchmark_all_method(df1, df2, B, config = func_config):
     return out_df
 
 
-
+#df1 = np.random.random((200, 21))
+#df2 = np.random.random((200, 21))
+#benchmark_all_method(df1, df2, config = func_config)
 
 
 

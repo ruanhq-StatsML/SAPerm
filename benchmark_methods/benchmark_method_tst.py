@@ -119,7 +119,8 @@ def random_projection_test(X1, X2, k = None):
 
 
 """
-
+An adaptive two-sample test for high-dimensional means
+Xu 2016
 """
 
 def adaptive_test_high_dim(X1, X2, gammas=None, n_perm=150):
