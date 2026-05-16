@@ -1,6 +1,6 @@
 # Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis
 
-Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk Causal Inference Test. We benchmark the following 15 methods with the 6 developed methods: 
+Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk based Tests. We benchmark the following 15 methods with the 6 developed methods: 
 - RFPerm: Random Forest Permutation Test for Distribution Shift 
 - XGBPerm: XGBoost based Permutation Test for Distribution Shift \
 ---- Causal Inference Based Test followed by a Permute-then-Refit Procedure on the Variable Importance 
