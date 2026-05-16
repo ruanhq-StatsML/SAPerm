@@ -1,6 +1,6 @@
 # Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis
 
-Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk Causal Inference Test. We benchmark the following 15 methods with the 6 developed methods: 
+Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk based Tests. We benchmark the following 15 methods with the 6 developed methods: 
 - RFPerm: Random Forest Permutation Test for Distribution Shift 
 - XGBPerm: XGBoost based Permutation Test for Distribution Shift \
 ---- Causal Inference Based Test followed by a Permute-then-Refit Procedure on the Variable Importance 
@@ -51,7 +51,7 @@ Journal of Multivariate Analysis. [Tests for the mean vector when p > n.]
 
 Pan14 (2014) – A powerful and adaptive association test for rare variants
 Pan, W. (2014).
-Genetic Epidemiology. [Originally for rare variant association, can be adapted for high‑dimensional two‑sample means.]
+Genetic Epidemiology. [Adaptive Two-sample Testing for Distribution Shift]
 
 AutoTST (2020) – AutoML Two‑Sample Test
 Kübler, J., et al. (2022).
