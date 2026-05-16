@@ -6,10 +6,11 @@ from itertools import product
 Sensitivity Analysis for the unobserved confounder that 
 associate with the responses Y as well as the treatment vector T.
 Sensitivity Parameters:
-[1] \rho1: the proportion of the variance explained by U in the treatment T
-[2] \rho2: the proportion of the variance explained by U in the response Y.
-Y = X * beta + epsilon
-k = r
+[1] \rho1: the proportion of the variance explained by U in the treatment T - R_{T~U}^{2}
+[2] \rho2: the proportion of the variance explained by U in the response Y - R_{Y~U}^{2}
+Y = Phi(X, T) + k_{y}U + epsilon_Y
+T = I(Phi(X)+k_{d}U+epsilon_{d} > thres)
+R_{T~U}^{2}
 '''
 
 def linear_model_sensitivity(
@@ -101,7 +102,7 @@ def sensitivity_analysis_wrapper(n_t, ss_ratio, uy_r2_grid, ud_r2_grid, p,
 	        W = np.concatenate([np.zeros(n1, dtype=int), np.ones(n2, dtype=int)])
 	        sim_s = _sim_seed(i, j, k)
 	        cf_obs = (int(sim_s) * 1103515245 + 12345) % (2**32)
-	        p_val_list1[k] = rrperm(X, Y, W, n_perm = 150)
+	        p_val_list1[k] = rrperm(X, Y, W, n_perm = 150, model_m = 'rf_regressor', model_e = 'logistic_classifier')
 	        risk_list[k] = float(risk)
 	    power_df['power'][i] = np.mean(np.array(p_val_list1) < 0.05)
 	    power_df.to_csv(out_csv)
