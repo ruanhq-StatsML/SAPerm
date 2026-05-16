@@ -23,7 +23,7 @@ Benchmark Methods: \
 (10) Pan14: "A powerful and adaptive association test for rare variants", Pan et.al. 2014 \
 (11) AutoTST: "AutoML Two-Sample Test", Kübler et.al. \
 (12) Bai96: ""Effect of high dimension: by an example of a two sample problem.", Bai et.al. 1996 \
-(13) zwl: "Result consistency of high dimensional two-sample tests applied to gene ontology terms with gene sets" Zhang et.al. \
+(13) zwl: "Result consistency of high dimensional two-sample tests applied to gene ontology terms with gene sets" Zhang et.al. 
 
 
 ## Python version:
