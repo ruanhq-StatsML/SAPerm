@@ -66,33 +66,6 @@ Zhang, W., et al. (2020).
 [A study on consistency of high‑dimensional tests when applied to gene ontology terms. Please provide the full citation if available.]
 
 
-## Python version:
-```python
-
-```
-
-## R version:
-#### Installation (local)
-
-```r
-install.packages(c("devtools", "roxygen2", "testthat", "grf", "MASS", ""))
-devtools::install_local("path/to/CFPerm")
-```
-
-## Testing Example
-
-```r
-library(CFPerm)
-
-```
-
-## Development
-
-```r
-devtools::document()
-devtools::test()
-devtools::check()
-```
-
+### Illustration for Fine-Tuning & Word Embedding and Testing Pipeline:
  [https://colab.research.google.com/drive/15K7Y0g0ic4LlUon5enWHcEZPdd6vcKwR#scrollTo=VV46gNnXAuy_](https://colab.research.google.com/drive/1y-Hl654ASB48EmimkRdQ79XIKbEHWzSq#scrollTo=sWb7WEPD3w05)
 
