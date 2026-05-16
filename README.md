@@ -54,7 +54,5 @@ devtools::test()
 devtools::check()
 ```
 
-### Causal Attribution: Comparing the feature-specific p-values versus the "Explaining Concept Shift with Interpretable Feature Attribution".
-1. https://colab.research.google.com/drive/15K7Y0g0ic4LlUon5enWHcEZPdd6vcKwR#scrollTo=VV46gNnXAuy_
-2. Lora/SFT for the GPT & Bert Text Embedding
+ [https://colab.research.google.com/drive/15K7Y0g0ic4LlUon5enWHcEZPdd6vcKwR#scrollTo=VV46gNnXAuy_](https://colab.research.google.com/drive/1y-Hl654ASB48EmimkRdQ79XIKbEHWzSq#scrollTo=sWb7WEPD3w05)
 
