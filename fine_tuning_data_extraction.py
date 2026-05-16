@@ -29,31 +29,6 @@ from FT_data_extraction_utils import *
 Function for dimensionality reduction with different methods:
 ICA, PCA, TSNE and UMAP
 '''
-def decompose(df,
-  method = 'PCA',
-  n_components_PCA = 100, n_TSNE = 20,
-  n_components_ICA = 20, n_neighbors_umap = 20,
-  n_components_umap = 20,
-   ABTT = 0, random_state = 2026):
-    if method == 'PCA': 
-        model = PCA(n_components = n_components_PCA)
-        df_emb = model.fit_transform(df)
-        if ABTT > 0:
-            df_emb = df_emb[:, ABTT:]
-    elif method == 'TSNE':
-        model = TSNE(n_components = n_components_TSNE,
-        perplexity = 10.0, random_state = random_state)
-        df_emb = model.fit_transform(df)
-    elif method == 'ICA':
-        model = FastICA(n_components = n_components_ICA, 
-        random_state = random_state, whiten = 'unit-variance')
-        df_emb = model.fit_transform(df)
-    elif method == 'UMAP':
-        model = umap.UMAP(n_neighbors = n_neighbors_umap,
-        min_dist = 0.25, n_components = n_compon)
-        df_emb = model.fit_transform(df)
-    return df, model
-
 
 
 
@@ -305,31 +280,6 @@ fine_tuning_data_wrapper_gpt(df, text_col = 'text',
     column_to_join = ['rating'])
 
 
-
-"""
-Amazon Gift Card Dataset, join the rating(response) column back.
-"""
-#np.random.seed(2026)
-#df = df.iloc[np.random.choice(np.arange(df.shape[0], 5000, replace = False))]
-df = pd.read_csv("Equity-Evaluation-Corpus.csv")
-df["text"] = df["Sentence"]
-fine_tuning_data_wrapper_bert(df, text_col = 'text',
-    model_name = 'bert-base-uncased',
-    lora_dir = './bert_mlm_lora_adapted',
-    output_dir = './bert_mlm_adapted',
-    output_dir_lora = './bert_mlm_lora_adapted',
-    num_train_epochs_mlm = 7, num_train_epochs_lora = 5,
-    output_csv_emb = 'Resulted_data/X_emb_equityevaluation_bertFineTuning.csv',
-    output_csv_lora = 'Resulted_data/X_emb_equityevaluation_bertFineTuningLora.csv',
-    column_to_join = ['gender', 'race'])
-fine_tuning_data_wrapper_gpt(df, text_col = 'text',
-    model_name = 'gpt2',
-    output_dir_lora = './gpt_mlm_lora_adapted',
-    output_dir = './gpt_mlm_lora_adapted',
-    num_train_epochs_mlm = 7, num_train_epochs_lora = 5,
-    output_csv_emb = 'Resulted_data/X_emb_equityevaluation_gptFineTuning.csv',
-    output_csv_lora = 'Resulted_data/X_emb_equityevaluation_gptFineTuningLora.csv',
-    column_to_join = ['gender', 'race'])
 
 
 

@@ -21,9 +21,6 @@ from cfperm import *
 from RFPerm import * 
 from model_registry_class import *
 from conformal_benchmark import *
-'''
-Benchmark all the methods with th
-'''
 model_registry = default_model_registry(
   ntree = 150,
   ridge_alpha = 0.25,
@@ -33,21 +30,19 @@ model_registry = default_model_registry(
   mlp_max_coef_reg = 10000, mlp_max_coef_clf = 10000,
   warn_xgb_labels = True, positive_class = 1
 )
-
-def L2(y_pred, y_target):
-    return ((np.array(y_pred) - np.array(y_target))**2).tolist()
-
 func_config = {
-'n_perm_cf': 150,
-'n_perm_drperm': 150,
-'n_perm_rf': 5000,
-'kernel': 'rbf',
-'n_perm_rrperm': 150,
-'outcome_model': 'rf_regressor',
-'ps_model': 'logistic_classifier',
-'n_conformal': 150
+    'n_perm_cf': 150,
+    'n_perm_rf': 150,
+    'n_perm_drperm': 150,
+    'n_perm_rrperm': 150,
+    'outcome_model_causal': 'rf_regressor',
+    'ps_model': '',
+    'kernel': 'rbf',
+    'n_conformal': 150,
+    'ps_model': 'logistic_classifier'
 }
-def benchmark_all_method(df1, df2, B, config = func_config):
+#The model registry for the meta-learner.
+def benchmark_all_method(df1, df2, B = 150, model_registry = model_registry, config = func_config):
     n1, p = df1.shape
     n2 = df2
     df_batch1 = np.asarray(df1[col_df1].to_numpy(dtype=float), dtype=float)
@@ -69,6 +64,9 @@ def benchmark_all_method(df1, df2, B, config = func_config):
     n_perm_rrperm = config.get('n_perm_rrperm')
     ps_model = config.get('ps_model')
     n_conformal = config.get('n_conformal')
+    #Specify the Outcome Model and Propensity Score Model:
+    model_m = model_registry[outcome_model]
+    model_e = model_registry[ps_model]
     #Initiate the p-value lists, for the two sample testing procedure, run on the joint distribution as well as the covariate distributions
     p_val_rrperm = np.zeros(B)
     p_val_miles16 = np.zeros(B)
@@ -107,11 +105,15 @@ def benchmark_all_method(df1, df2, B, config = func_config):
                             df2_sample[:, :(df2_sample.shape[1] - 1)]]).astype(float)
         Y = np.concatenate([df1_sample[:, df1_sample.shape[1] - 1],
                             df2_sample[:, df2_sample.shape[1] - 1]]).astype(float)
-        p_val_rrperm[i] = RRPerm(X, Y, W, n_perm = n_perm_rrperm)
-        p_val_cfperm_loco[i] = cfperm_feature_pvals(X, Y, W, vimp = 'loco', n_perm = n_perm_cf)
-        p_val_cfperm_permu[i] = cfperm_feature_pvals(X, Y, W, vimp = 'permucate', n_perm = n_perm_cf)
-        p_val_cfperm_grf[i] = cfperm_feature_pvals(X, Y, W, vimp = 'grf', n_perm = n_perm_cf)
-        p_val_drperm[i] = DRPerm(X, Y, W, n_perm = n_perm_drperm)
+        p_val_rrperm[i] = RRPerm(X, Y, W, n_perm = n_perm_rrperm, model_m = model_m, model_e = model_e)
+        p_val_cfperm_loco[i] = cfperm_feature_pvals(X, Y, W, vimp = 'loco', n_perm = n_perm_cf,
+            model_m = model_m, model_e = model_e)
+        p_val_cfperm_permu[i] = cfperm_feature_pvals(X, Y, W, vimp = 'permucate', n_perm = n_perm_cf,
+            model_m = model_m, model_e = model_e)
+        p_val_cfperm_grf[i] = cfperm_feature_pvals(X, Y, W, vimp = 'grf', n_perm = n_perm_cf,
+            model_m = model_m, model_e = model_e)
+        p_val_drperm[i] = DRPerm(X, Y, W, n_perm = n_perm_drperm,
+            model_m = model_m, model_e = model_e)
         p_val_miles16[i] = random_projection_test(df1_X_concat, df2_X_concat)
         p_val_xu16[i] = adaptive_test_high_dim(df1_X_concat, df2_X_concat)
         p_val_kmmd[i] = kernel_MMD(df1_X_concat, df2_X_concat, kernel = kernel)
@@ -157,7 +159,7 @@ def benchmark_all_method(df1, df2, B, config = func_config):
 
 #df1 = np.random.random((200, 21))
 #df2 = np.random.random((200, 21))
-#benchmark_all_method(df1, df2, config = func_config)
+#benchmark_all_method(df1, df2, B = 150, model_registry = model_registry, config = func_config)
 
 
 

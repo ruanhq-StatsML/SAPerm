@@ -2,11 +2,69 @@
 #Amazon Review Dataset - Json to dataframe:
 import json
 import pandas as pd
+from typing import Any, Dict, Optional
+import numpy as np
+from sklearn.decomposition import PCA, UMAP, TSNE, LDA, KernelPCA, FastICA
+
+
+'''
+This implements eigen shift on the contextual word embedding, different types of Shifts injected:
+'''
+def eigen_shift(df, n_components_PCA = 25, random_state = 2026):
+    if standardize:
+        scaler = StandardScaler()
+        X_user = scaler.fit_transform(X)
+    else:
+        scaler = None
+        X_user = X - X.mean(axis = 0, keepdims = True)
+    pca = PCA(n_components = n_components_PCA, random_state = random_state)
+    pca.fit(X_user)
+    return PCA, X_user, scaler
+
+def apply_eigen_shift(X, direction, gamma):
+    if standardize and scaler is not None:
+        X_std = scaler.transform(X)
+        X_new_std = X_std + gamma * direction.reshape(1, -1)
+        X_new = scaler.inverse_transform(X_new_std)
+    else:
+        X_new = X + gamma * direction.reshape(1, -1)
+    return X_new
+
+
 """
 This script implements all of the translational & procedures for the - including the following functions:
-- back_translation: translate the English to another English then translate back to English.
-- 
+- back_translation:                 Translate the English to another English then translate back to English.
+- Injection:                        Syntax, random character injection
+- Random Negative Words Injection:  Insertion of the random negative words
+- Dimensionality Reduction:         For the Contextual Text Embedding
+- Rewrite:                          Rephrase via different styles of the text(casual/professional) via calling the OpenAI API
 """
+
+def decompose(df,
+  method = 'PCA',
+  n_components_PCA = 100, n_TSNE = 20,
+  n_components_ICA = 20, n_neighbors_umap = 20,
+  n_components_umap = 20,
+   ABTT = 0, random_state = 2026):
+    if method == 'PCA': 
+        model = PCA(n_components = n_components_PCA)
+        df_emb = model.fit_transform(df)
+        if ABTT > 0:
+            df_emb = df_emb[:, ABTT:]
+    elif method == 'TSNE':
+        model = TSNE(n_components = n_components_TSNE,
+        perplexity = 10.0, random_state = random_state)
+        df_emb = model.fit_transform(df)
+    elif method == 'ICA':
+        model = FastICA(n_components = n_components_ICA, 
+        random_state = random_state, whiten = 'unit-variance')
+        df_emb = model.fit_transform(df)
+    elif method == 'UMAP':
+        model = umap.UMAP(n_neighbors = n_neighbors_umap,
+        min_dist = 0.25, n_components = n_compon)
+        df_emb = model.fit_transform(df)
+    return df, model
+
 
 def amazon_review_df(json_file, out_csv):
 	lines = []
@@ -60,14 +118,15 @@ def back_translate_texts(
     return output
 
 
-#写成class会比较好.
+'''
+Text Injection: Rephrase & Adding negative words.
+'''
 ascii_special = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~'
 whitespace_control = '\n\t\r'
 unicode_variants = '“”‘’–—…•·°±×÷²³'
 transformer_tokens = '[UNK][PAD][CLS][SEP][MASK]<s></s>'
 #Asking the 
 SPECIAL_CHARACTERS = ascii_special + whitespace_control + unicode_variants + transformer_tokens
-API_KEY = 
 class TextInjection:
     def __init__(self, levels, client, 
         model = 'gpt-4o-mini',
@@ -155,20 +214,6 @@ class TextInjection:
             temperature = 0.8 if level == 'paraphrase' else 0.25
         )
         return response.choices[0].message.content.strip()
-
-
-#Extract Fine-Tuning datasets for preparation:
-
-    
-
-
-
-
-
-
-
-
-#
 
 
 
