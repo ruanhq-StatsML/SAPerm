@@ -162,7 +162,7 @@ def NNfun(x, z, xpre1, xpre2, n_epochs = 20, nnrep = 10, optimizer = 'sgd', clip
     return {'prob1_fit': prob1_fit, 'prob2_fit': prob2_fit}
 
 
-def KLR_cv(X, Y, xpre, ypre, lambdaseq, sigmaseq):
+def KLR_cv(X, Y, xpre, ypre, lambdaseq, sigmaseq, n_splits = 5):
     lambda_len = len(lambdaseq)
     sigma_len = len(sigmaseq)
     centropy = np.zeros((lambda_len, sigma_len))
@@ -170,7 +170,7 @@ def KLR_cv(X, Y, xpre, ypre, lambdaseq, sigmaseq):
     minerror = np.inf
     for i, lambda_now in range(lambda_len):
         for j, sigma in range(sigma_len):
-            cv_data = kFold(X, Y, shuffle = True)
+            cv_data = KFold(n_splits = 5, shuffle = True, random_state = 24)
             pipe = Pipeline([
                 ('rbf': RBFSampler()),
                 ('lr': LogisticRegression())])
@@ -178,7 +178,7 @@ def KLR_cv(X, Y, xpre, ypre, lambdaseq, sigmaseq):
             'rbf__gamma': sigmaseq,
             'lr__C': 1/np.array(lambdaseq)
             }
-            fit_klr = 
+            fit_klr = pipe.fit(X, Y)
             prob_pre = 1/(1 + np.exp(-K))
             prob_pre = np.minimum(np.maximum(prob_pre, 0.01), 0.99)
             centropy[i, j] = np.mean(-ypre * np.log(prob_pre) -
@@ -207,15 +207,157 @@ def getCor(g1, v1, v2, gorac1, vorac1, vorac2):
     ecdf2 = ecdfVal['ecdf2']
     mean_hatd = np.mean(1 -  ecdf1 + ecdf2/2)
     var_hatg_minus_g = np.var(g1 - gorac1)
-    
+    second_hatd = np.mean(1 - ecdf1 + ecdf2/3)
+    var_hatd = second_hatd - mean_hatd**2
+    sceond_hatg_minus_g_hatd = np.mean((g1 - gorac1)*((1-ecd1)+ecdf2/2))
+    e1 = sceond_hatg_minus_g_hatd - mean_hatg_minus_g * mean_hatd
+    e2 = mean_hatg_minus_g
+    e3 = np.mean(gorac1*((1-ecdf1)+ecdf2/2))
+    rho1 = e1/np.sqrt(var_hatg_minus_g*var_hatg)
+    rho2 = mean_hatg_minus_g/mean_abs_hatg_minus_g
+    var_g = np.var(gorac1)
+    rho3 = e3/np.sqrt(var_hatd * var_g)
+    ecdfValorac = getEcdf1(vorac1, vorac2)
+    ecdforac1 = ecdfValorac['ecdf1']
+    ecdforac2 = ecdfValorac['ecdf2']
+    e4 = np.mean(gorac1 * ((1 - ecdf1) + ecdf2/2)) - np.mean(gorac1 * ((1 - ecdforac1) + ecdforac2/2))
+    return {
+    'rho1': rho1, 'rho2': rho2,
+    'rho3': rho3, 'e1': e1,
+    'e2': e2, 'e3': e3,
+    'e4': e4
+    }
                 
-             
+
+def LR(x1, x2, y1, y2):
+    n1, p = x1.shape
+    n2 = x2.shape[0]
+    x = np.vstack((x1, x2))
+    y = np.concatenate((y1, y2))
+    xmean = np.tile(x.mean(axis = 0), (n1, 1))
+    ymean = np.mean(y)
+    b = np.linalg.solve((x-xmean).T@(x-xmean), (x-xmean).T@(y-ymean))
+    a = ymean - np.sum(b*x.mean(axis = 0))
+    xmean1 = np.tile(x1.mean(axis = 0), (n1, 1))
+    xmean2 = np.tile(x2.mean(axis = 0), (n2, 1))
+    ymean1 = np.mean(y1)
+    ymean2 = np.mean(y2)
+    X1tX1 = (x1-xmean1).T@(x1-xmean1)
+    X2tX2 = (x2-xmean2).T@(x2-xmean2)
+    X1tY1 = (x1-xmean1).T@(y1-ymean1)
+    X2tY2 = (x2-xmean2).T@(y2-ymean2)
+    b = np.linalg.solve(X1tX1 + X2tX2, X1tY1+X2tY2)
+    a1 = ymean1 - np.sum(b * x1.mean(axis = 0))
+    a2 = ymean2 - np.sum(b * x2.mean(axis = 0))
+    sigma2_unres = (np.sum((y1 - a1 - x1@b)**2) + 
+        np.sum((y2 - a2 - x2@b)**2))/(n1 + n2)
+    stat = n * np.log(sigma2_res/sigma2_unres)
+    pval = 1 - pchisq(stat, 1)
+    return pval
 
 
 
 
 
-
+def conformalNN(df1, df2, mc, alpha=0.05):
+    """
+    Python version of the R conformal_test function.
+    
+    Parameters
+    ----------
+    df1 : pandas.DataFrame
+        First data frame. Last column is the response y, all previous columns are predictors.
+    df2 : pandas.DataFrame
+        Second data frame. Last column is the response y.
+    mc : int
+        Number of bootstrap replications.
+    alpha : float, optional
+        Significance level (default 0.05).
+    
+    Returns
+    -------
+    power : float
+        Mean rejection rate across all tests.
+    """
+    p_X = df1.shape[1] - 1          # number of predictors
+    n1 = len(df1)
+    n2 = len(df2)
+    # Pre-allocate result arrays
+    llpvalue1 = np.zeros((mc, 3))
+    nnpvalue1 = np.zeros((mc, 3))
+    llpvalue2 = np.zeros(mc)
+    nnpvalue2 = np.zeros(mc)
+    llpvalue_gm = np.zeros((mc, 3))
+    nnpvalue_gm = np.zeros((mc, 3))
+    llpvalue_hm = np.zeros((mc, 3))
+    nnpvalue_hm = np.zeros((mc, 3))
+    centropy_ll_joint = np.zeros(mc)
+    centropy_ll_marginal = np.zeros(mc)
+    centropy_nn_joint = np.zeros(mc)
+    centropy_nn_marginal = np.zeros(mc)
+    error_ll = np.zeros(mc)
+    error_nn = np.zeros(mc)
+    cerror12_ll_joint = np.zeros(mc)
+    cerror12_ll_marginal = np.zeros(mc)
+    cerror12_nn_joint = np.zeros(mc)
+    cerror12_nn_marginal = np.zeros(mc)
+    cerror22_ll_joint = np.zeros(mc)
+    cerror22_ll_marginal = np.zeros(mc)
+    cerror22_nn_joint = np.zeros(mc)
+    cerror22_nn_marginal = np.zeros(mc)
+    for run in range(mc):
+        df1_b = df1.sample(n=n1, replace=True, ignore_index=True)
+        df2_b = df2.sample(n=n2, replace=True, ignore_index=True)
+        x1 = df1_b.iloc[:, :p_X]
+        y1 = df1_b.iloc[:, p_X]
+        x2 = df2_b.iloc[:, :p_X]
+        y2 = df2_b.iloc[:, p_X]
+        n12 = n1 // 2
+        n11 = n1 - n12
+        n22 = n2 // 2
+        n21 = n2 - n22
+        res = sim_fun(x1, y1, x2, y2, n11, n12, n21, n22)
+        # Store results
+        nnpvalue1[run, :] = res['nnpvalue1']
+        llpvalue1[run, :] = res['llpvalue1']
+        nnpvalue2[run] = res['nnpvalue2']
+        llpvalue2[run] = res['llpvalue2']
+        nnpvalue_gm[run, :] = res['nnpvalue.gm']
+        llpvalue_gm[run, :] = res['llpvalue.gm']
+        nnpvalue_hm[run, :] = res['nnpvalue.hm']
+        llpvalue_hm[run, :] = res['llpvalue.hm']
+        centropy_ll_joint[run] = res['centropy.ll.joint']
+        centropy_ll_marginal[run] = res['centropy.ll.marginal']
+        centropy_nn_joint[run] = res['centropy.nn.joint']
+        centropy_nn_marginal[run] = res['centropy.nn.marginal']
+        error_ll[run] = res['error.ll']
+        error_nn[run] = res['error.nn']
+        cerror12_ll_joint[run] = res['cerror12.ll.joint']
+        cerror12_ll_marginal[run] = res['cerror12.ll.marginal']
+        cerror12_nn_joint[run] = res['cerror12.nn.joint']
+        cerror12_nn_marginal[run] = res['cerror12.nn.marginal']
+        cerror22_ll_joint[run] = res['cerror22.ll.joint']
+        cerror22_ll_marginal[run] = res['cerror22.ll.marginal']
+        cerror22_nn_joint[run] = res['cerror22.nn.joint']
+        cerror22_nn_marginal[run] = res['cerror22.nn.marginal']
+    # Compute rejection rates
+    llper_rej1 = np.mean(llpvalue1 < alpha, axis=0)
+    nnper_rej1 = np.mean(nnpvalue1 < alpha, axis=0)
+    llper_rej2 = np.mean(llpvalue2 < alpha)
+    nnper_rej2 = np.mean(nnpvalue2 < alpha)
+    llper_rej_gm = np.mean(llpvalue_gm < alpha, axis=0)
+    nnper_rej_gm = np.mean(nnpvalue_gm < alpha, axis=0)
+    llper_rej_hm = np.mean(llpvalue_hm < alpha, axis=0)
+    nnper_rej_hm = np.mean(nnpvalue_hm < alpha, axis=0)
+    # Combine all rejection rates into a single vector and take the mean
+    all_rej = np.concatenate([
+        nnper_rej1,          # length 3
+        [nnper_rej2],        # length 1
+        nnper_rej_gm,        # length 3
+        nnper_rej_hm         # length 3
+    ])
+    power = np.mean(all_rej)
+    return power
 
 
 
