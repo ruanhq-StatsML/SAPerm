@@ -51,7 +51,7 @@ Journal of Multivariate Analysis. [Tests for the mean vector when p > n.]
 
 Pan14 (2014) – A powerful and adaptive association test for rare variants
 Pan, W. (2014).
-Genetic Epidemiology. [Originally for rare variant association, can be adapted for high‑dimensional two‑sample means.]
+Genetic Epidemiology. [Adaptive Two-sample Testing for Distribution Shift]
 
 AutoTST (2020) – AutoML Two‑Sample Test
 Kübler, J., et al. (2022).
