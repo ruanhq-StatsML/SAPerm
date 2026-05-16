@@ -11,7 +11,7 @@ Implementation for the Permutation Test for Distribution Shift with Application 
 ~ RRPerm:           Permutation Test via the R-learner 
 -------- 
 Benchmark Methods
-We compare against the following state‑of‑the‑art and classical two‑sample testing methods:
+We compare against the following state‑of‑the‑art and classical two‑sample testing methods via Python
 
 SKK (2013) – A two‑sample test in high‑dimensional data
 Srivastava, M. S., Katayama, S., & Kano, Y. (2013).
