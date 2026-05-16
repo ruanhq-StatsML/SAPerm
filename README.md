@@ -69,3 +69,4 @@ Zhang, W., et al. (2020).
 ### Illustration for Fine-Tuning & Word Embedding and Testing Pipeline:
  [https://colab.research.google.com/drive/15K7Y0g0ic4LlUon5enWHcEZPdd6vcKwR#scrollTo=VV46gNnXAuy_](https://colab.research.google.com/drive/1y-Hl654ASB48EmimkRdQ79XIKbEHWzSq#scrollTo=sWb7WEPD3w05)
 
+#### For the details of the dataset, please contact hank_rhq@outlook.com for more details
