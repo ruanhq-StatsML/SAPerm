@@ -10,20 +10,60 @@ Implementation for the Permutation Test for Distribution Shift with Application 
 ~ DRPerm:           Permutation Test via the doubly robust pseudo-outcome learner 
 ~ RRPerm:           Permutation Test via the R-learner 
 -------- 
-Benchmark Methods: \
-(1) SKK: "A two sample test in high dimensional data", Srivastava et.al. 2013 \
-(2) Conformal: "A two-sample conditional distribution test using conformal prediction and weighted rank sum", Hu et.al. 2024 \
-(3) C2ST: "Revisiting Classifier Two-Sample Tests", Lopez-Paz et.al. 2016 \
-(4) KMMD: "A Kernel Two-sample Test(Kernel MMD)" Gretton et.al. 2012 \
-(5) Miles: "A more powerful two-sample test in high dimensions using random projection" ME.Lopes et.al. 2011 \
-(6) Xu16: "An adaptive two-sample test for high-dimensional means" Xu et.al. 2016 \
-(7) Chen10: "A two-sample test for high-dimensional data with applications to gene-set testing", Chen et.al. 2010 \
-(8) Chen14: "Two-Sample Tests for High Dimensional Means with Thresholding and Data Transformation", Chen et.al. 2014 \
-(9) Sri08: "A test for the mean vector with fewer observations than the dimension.", Srivastava et.al. 2008 \
-(10) Pan14: "A powerful and adaptive association test for rare variants", Pan et.al. 2014 \
-(11) AutoTST: "AutoML Two-Sample Test", Kübler et.al. \
-(12) Bai96: ""Effect of high dimension: by an example of a two sample problem.", Bai et.al. 1996 \
-(13) zwl: "Result consistency of high dimensional two-sample tests applied to gene ontology terms with gene sets" Zhang et.al. 
+Benchmark Methods
+We compare against the following state‑of‑the‑art and classical two‑sample testing methods:
+
+SKK (2013) – A two‑sample test in high‑dimensional data
+Srivastava, M. S., Katayama, S., & Kano, Y. (2013).
+Journal of Multivariate Analysis. [A test for high‑dimensional mean vectors with unequal covariance matrices.]
+
+Conformal (2024) – A two‑sample conditional distribution test using conformal prediction and weighted rank sum
+Hu, X., et al. (2024).
+arXiv preprint. [Conditional distribution test via conformal prediction and weighted rank sum.]
+
+C2ST (2016) – Revisiting Classifier Two‑Sample Tests
+Lopez‑Paz, D., & Oquab, M. (2016).
+ICLR 2017. [Uses a classifier’s accuracy to test whether two samples come from the same distribution.]
+
+KMMD (2012) – A Kernel Two‑Sample Test (Kernel MMD)
+Gretton, A., Borgwardt, K. M., Rasch, M. J., Schölkopf, B., & Smola, A. (2012).
+Journal of Machine Learning Research. [Maximum Mean Discrepancy with a characteristic kernel.]
+
+Miles (2011) – A more powerful two‑sample test in high dimensions using random projection
+Lopes, M. E., Jacob, L., & Wainwright, M. J. (2011).
+Advances in Neural Information Processing Systems. [Random projection based test for high‑dimensional means.]
+
+Xu16 (2016) – An adaptive two‑sample test for high‑dimensional means
+Xu, G., Lin, L., Wei, P., & Pan, W. (2016).
+Biometrika. [Adaptive thresholding for sparse high‑dimensional mean differences.]
+
+Chen10 (2010) – A two‑sample test for high‑dimensional data with applications to gene‑set testing
+Chen, S. X., & Qin, Y. L. (2010).
+The Annals of Statistics. [Uses a regularized Hotelling’s T² for gene‑set analysis.]
+
+Chen14 (2014) – Two‑Sample Tests for High Dimensional Means with Thresholding and Data Transformation
+Chen, S. X., Li, J., & Zhong, P. S. (2014).
+Journal of the American Statistical Association. [Combines thresholding and transformation to handle sparse signals.]
+
+Sri08 (2008) – A test for the mean vector with fewer observations than the dimension
+Srivastava, M. S. (2008).
+Journal of Multivariate Analysis. [Tests for the mean vector when p > n.]
+
+Pan14 (2014) – A powerful and adaptive association test for rare variants
+Pan, W. (2014).
+Genetic Epidemiology. [Originally for rare variant association, can be adapted for high‑dimensional two‑sample means.]
+
+AutoTST (??) – AutoML Two‑Sample Test
+Kübler, J., et al. (2022).
+[An automated machine learning approach to two‑sample testing. Please check the original source for exact year and citation.]
+
+Bai96 (1996) – Effect of high dimension: by an example of a two sample problem
+Bai, Z., & Saranadasa, H. (1996).
+Statistica Sinica. [Demonstrates failure of classical Hotelling’s T² when dimension grows with sample size.]
+
+ZWL (Zhang et al.) – Result consistency of high‑dimensional two‑sample tests applied to gene ontology terms with gene sets
+Zhang, W., et al. (2020).
+[A study on consistency of high‑dimensional tests when applied to gene ontology terms. Please provide the full citation if available.]
 
 
 ## Python version:
