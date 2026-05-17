@@ -21,6 +21,7 @@ from cfperm import *
 from RFPerm import * 
 from model_registry_class import *
 from conformal_benchmark import *
+#Model Configuration of the learner.
 model_registry = default_model_registry(
   ntree = 150,
   ridge_alpha = 0.25,
@@ -41,7 +42,6 @@ func_config = {
     'n_conformal': 150,
     'ps_model': 'logistic_classifier'
 }
-#The model registry for the meta-learner.
 def benchmark_all_method(df1, df2, B = 150, model_registry = model_registry, config = func_config):
     n1, p = df1.shape
     n2 = df2
