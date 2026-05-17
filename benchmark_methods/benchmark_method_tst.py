@@ -636,6 +636,113 @@ def skk_test(X, Y):
 
 
 
+def KLR_CV(X, Y, X_pred, Y_pred, lambda_seq, sigma_seq, cv = 5):
+"""
+X:         (n, p)
+Y:         (n, )
+X_pred:    (n_new, p)
+Y_pred:    (n_new, )
+lambdaseq: C = 1/lambda
+sigmaseq:  gamma(RBF kernel)
+"""
+    Y = np.asarray(Y).astype(float)
+    Y_pred = np.asarray(Y_pred).astype(float)
+    param_grid = {
+        'rbf__gamma': sigma_seq,
+        'logreg__C' : [1.0/lam for lam in lambda_seq]
+    }
+    n_components = min(100, X.shape[1] * 2) if X.shape[1] < 100 else 100
+    pipe = Pipeline([
+        ('rbf': RBFSampler(n_components = n_components, random_state = 24)),
+        ('logreg': LogisticRegression(solver = 'lbfgs', max_iter = 1000))
+    ])
+    #Cross-Validation:
+    grid = GridSearchCV(pipe, param_grid, cv = cv, scoring = 'neg_log_loss',
+        n_jobs = -1)
+    grid.fit(X, Y)
+    #Finding the best Model:
+    best = grid.best_estimator_
+    best_C = grid.best_params_['logreg__C']
+    best_gamma = grid.best_params_['rbf__gamma']
+    best_lambda = 1.0/best_C
+    #Predict Probabilities on X_pred:
+    prob_pre = best.predict_proba(X_pred)[:, 1]
+    prob_pre = np.clip(prob_pre, 0.01, 0.99)
+    #Compute the Log-loss for each of the combination:
+    cv_results = grid.cv_results_
+    for i, lam in enumerate(lambda_seq):
+        for j, sigma in enumerate(sigma_seq):
+            idx = np.where((cv_results['param_logreg__C'] == 1.0/lam) & 
+                (cv_results['param_rbf__gamma'] == sigma))[0]
+            if len(idx) > 0:
+                centropy[i, j] = -cv_results['mean_result'][idx[0]]
+            else:
+                centropy[i, j] = np.nan   
+    return {
+    'prob': prob_pre,
+    'lambda': best_lambda,
+    'sigma': best_gamma,
+    'centropy': centropy
+    }
+
+
+
+#rewrite it as prange here!
+from numba import njit, prange
+
+@jit(nopython=True)
+def accelerated_loop(arr):
+    total = 0.0
+    for i in range(len(arr)):
+        total += np.sqrt(i)
+    return total
+accelerated_loop(np.arange(1000000))
+
+
+from numba import njit, prange
+@njit(parallel = True)
+def parallel_loop(n):
+    result = np.zeros(n)
+    for i in prange(n):
+        result[i] = i ** (0.1)
+    return result
+
+parallel_loop(1000000)
+
+@njit(parallel = True, fastmath = True)#allow Numba to perform mathematically
+#aggressive optimizations,like reordering operations.
+#manual fusion: 
+
+#accelerate the for loop here, with mathematically aggressive optimizaions.
+#like reordering operations.
+numba.prange(10000)
+
+#fastmath = True, min(), max()
+
+from sklearn.kernel_approximation import RBFSampler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCVs
+from sklearn.metrics import log_loss
+from sklearn.linear_model import LogisticRegression
+#cv_results['param_logreg__C']
+#cv_results['param_rbf__gamma']
+#cv_results['param_logreg__C']
+
+
+
+
+#automatic for the numba computing here!
+
+
+
+
+
+
+
+
+
+
+
 
 
 

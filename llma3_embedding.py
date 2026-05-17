@@ -15,7 +15,9 @@ def semnatic_isotropy(df_emb, kernel = 'cosine'):
 
 #clarify the scope, agree on the expected output, set review points,
 #monitor blocks and adjust the level of support based on the progress.
-
+#semantic_isotropy = vNE/np.log(n)
+#return semantic_isotropy?
+#eig_values, eig_vectors = np.linalg.eigh(K_mat)
 
 def llama3_embedding(texts, n_dim = 768, batch_size = 32, system_prompt = None):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
