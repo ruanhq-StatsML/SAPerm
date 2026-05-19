@@ -7,8 +7,8 @@ Implementation for the Permutation Test for Distribution Shift with Application 
 - CFPerm_loco:      Leave-one-Covariate-out Variable Importance 
 - CFPerm_PermuCATE: Conditional Permutation Variable Importance 
 - CFPerm_grf:       Causal Forest Split Variable Importance 
-~ DRPerm:           Permutation Test via the doubly robust pseudo-outcome learner 
-~ RRPerm:           Permutation Test via the R-learner 
+- DRPerm:           Hypothesis Test via the doubly robust pseudo-outcome learner 
+- RRPerm:           Hypothesis Test via the R-learner 
 -------- 
 Benchmark Methods
 We compare against the following state‑of‑the‑art and classical two‑sample testing methods via Python
