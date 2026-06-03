@@ -1,4 +1,4 @@
-# Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis
+# Hypothesis Testing Procedure for Distribution Shift with Application on Sentiment Analysis and Image Embedding
 
 Implementation for the Permutation Test for Distribution Shift with Application to Sentiment Analysis: Both Tree-Based Permutation Test and R-risk based Tests. We benchmark the following 15 methods with the 6 developed methods: 
 - RFPerm: Random Forest Permutation Test for Distribution Shift 
@@ -109,7 +109,10 @@ result = benchmark_all_method(df1, df2, config = func_config)
 
 ### Illustration for Fine-Tuning & Word Embedding and Testing Pipeline:
  [https://colab.research.google.com/drive/15K7Y0g0ic4LlUon5enWHcEZPdd6vcKwR#scrollTo=VV46gNnXAuy_](https://colab.research.google.com/drive/1y-Hl654ASB48EmimkRdQ79XIKbEHWzSq#scrollTo=sWb7WEPD3w05)
-### Embedding Extraction with recent Contextual Word Embeddings:
+### Embedding Extraction with recent Contextual Word Embeddings
 https://colab.research.google.com/drive/1lYQFzql9wtXdPDvEh2QQ7q7shlFMjCbv#scrollTo=BeZ86cfSYAZu
+### Embedding Extraction via Vision Transformers
+https://colab.research.google.com/drive/1SyI5dn7d4WPZKPXVXMMxCVZo8PePXOF0
 
 #### For the details of the dataset, please contact hank_rhq@outlook.com for more details
+
